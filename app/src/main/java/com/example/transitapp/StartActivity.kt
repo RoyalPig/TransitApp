@@ -47,34 +47,25 @@ class StartActivity : AppCompatActivity() {
     }
 
     private fun getLocation() {
-        //Permission already granted, get location
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            Log.i("TESTING", "Hurray, you did it")
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            Log.i("TESTING", "Permission granted. Getting location.")
             fusedLocationProviderClient?.getCurrentLocation(PRIORITY_HIGH_ACCURACY, null)
-                ?.addOnSuccessListener { location: Location? ->
+                ?.addOnSuccessListener { location ->
                     location?.let {
-                        // Create an Intent to start MainActivity
+                        // Add intent to redirect to MainActivity
                         val intent = Intent(this@StartActivity, MainActivity::class.java).apply {
-                            // Pass location data
                             putExtra("latitude", location.latitude)
                             putExtra("longitude", location.longitude)
                         }
                         startActivity(intent)
-                        finish() // Finish StartActivity after starting MainActivity
                     }
-                    Log.i("LocationInfo", "Latitude: ${location?.latitude}, Longitude: ${location?.longitude}")
                 }
-
-
         } else {
-            //Ask for permission
+            // Ask for permission
             askPermission()
         }
     }
+
 
     private fun askPermission() {
         //Request location permission from user
