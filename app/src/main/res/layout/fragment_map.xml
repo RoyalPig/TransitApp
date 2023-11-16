@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.home.HomeFragment">
+    tools:context=".ui.Map.MapFragment">
 
     <TextView
         android:id="@+id/text_home"
@@ -19,4 +19,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+    <com.mapbox.maps.MapView xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        mapbox:mapbox_cameraTargetLat="44.6691"
+        mapbox:mapbox_cameraTargetLng="-63.6131"
+        mapbox:mapbox_cameraZoom="14.0"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

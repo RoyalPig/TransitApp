@@ -1,6 +1,7 @@
 package com.example.transitapp
 
 import android.os.Bundle
+import android.os.StrictMode
 import android.util.Log
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +16,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        //Allow network operations on the main thread
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy((policy))
         // Retrieve location data from the intent
         val latitude = intent.getDoubleExtra("latitude", 0.0)
         val longitude = intent.getDoubleExtra("longitude", 0.0)
@@ -22,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         // Log the received location data
         Log.i("ReceivedLocation", "Latitude: $latitude, Longitude: $longitude")
 
-        super.onCreate(savedInstanceState)
+
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
