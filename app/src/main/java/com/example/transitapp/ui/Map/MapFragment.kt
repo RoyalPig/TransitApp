@@ -17,77 +17,90 @@ import com.mapbox.maps.Style
 import com.mapbox.maps.plugin.annotation.annotations
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationManager
 import com.mapbox.maps.plugin.annotation.generated.PointAnnotationOptions
-import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 import java.net.URL
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.plugin.annotation.generated.createPointAnnotationManager
 
 class MapFragment : Fragment() {
 
     private var _binding: FragmentMapBinding? = null
-    private val binding get() = _binding!!
+    private val binding get() = _binding
+
     private lateinit var mapboxMap: MapboxMap
-    private lateinit var pointAnnotationManager: PointAnnotationManager
+    private var pointAnnotationManager: PointAnnotationManager? = null
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         _binding = FragmentMapBinding.inflate(inflater, container, false)
-        val root: View = binding.root
+        val root = _binding?.root
 
-        binding.mapView.getMapboxMap().apply {
+        _binding?.mapView?.getMapboxMap()?.apply {
             loadStyleUri(Style.MAPBOX_STREETS) { style ->
-
                 mapboxMap = this
 
-                // Setup the annotation manager here, after the style has loaded
-                pointAnnotationManager = binding.mapView.annotations.createPointAnnotationManager(binding.mapView)
+                // Initialize the PointAnnotationManager here
+                pointAnnotationManager = binding?.mapView?.annotations?.createPointAnnotationManager()
 
-                // Fetch and parse the GTFS data
-                Thread {
-                    val url = URL("https://gtfs.halifax.ca/realtime/Vehicle/VehiclePositions.pb")
-                    val feed: GtfsRealtime.FeedMessage = GtfsRealtime.FeedMessage.parseFrom(url.openStream())
-                    val annotations = mutableListOf<PointAnnotationOptions>()
-                    for (entity in feed.entityList) {
-                        if (entity.hasVehicle()) {
-                            val vehicle = entity.vehicle
-                            val routeId = vehicle.trip.routeId
-                            val latitude = vehicle.position.latitude
-                            val longitude = vehicle.position.longitude
+                // Set the camera position to the received location
+                val latitude = arguments?.getDouble("latitude", 0.0) ?: 0.0
+                val longitude = arguments?.getDouble("longitude", 0.0) ?: 0.0
+                mapboxMap.setCamera(
+                    CameraOptions.Builder()
+                        .center(Point.fromLngLat(longitude, latitude))
+                        .zoom(15.0)
+                        .build()
+                )
 
-                            // Custom annotation
-                            val customAnnotationView = LayoutInflater.from(context).inflate(R.layout.bus_annotation_layout, null)
-                            val textView = customAnnotationView.findViewById<TextView>(R.id.busNumberText)
-                            textView.text = routeId // Set the bus number
-
-                            // Convert the view to Bitmap
-                            customAnnotationView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-                            customAnnotationView.layout(0, 0, customAnnotationView.measuredWidth, customAnnotationView.measuredHeight)
-                            val bitmap = Bitmap.createBitmap(customAnnotationView.measuredWidth, customAnnotationView.measuredHeight, Bitmap.Config.ARGB_8888)
-                            val canvas = Canvas(bitmap)
-                            customAnnotationView.draw(canvas)
-
-                            // Create a point annotation for each bus position with custom view
-                            val pointAnnotation = PointAnnotationOptions()
-                                .withPoint(Point.fromLngLat(longitude.toDouble(), latitude.toDouble()))
-                                .withIconImage(bitmap)
-
-                            annotations.add(pointAnnotation)
-                        }
-                    }
-                    // Update the map with annotations on the main thread
-                    activity?.runOnUiThread {
-                        pointAnnotationManager.create(annotations)
-                    }
-                }.start()
+                // Start fetching and parsing GTFS data
+                fetchData()
             }
         }
 
         return root
     }
 
+    private fun fetchData() {
+        Thread {
+            val url = URL("https://gtfs.halifax.ca/realtime/Vehicle/VehiclePositions.pb")
+            val feed: GtfsRealtime.FeedMessage = GtfsRealtime.FeedMessage.parseFrom(url.openStream())
+            val annotations = mutableListOf<PointAnnotationOptions>()
+            for (entity in feed.entityList) {
+                if (entity.hasVehicle()) {
+                    val vehicle = entity.vehicle
+                    val routeId = vehicle.trip.routeId
+                    val vehicleLatitude = vehicle.position.latitude
+                    val vehicleLongitude = vehicle.position.longitude
+
+                    val customAnnotationView = LayoutInflater.from(context).inflate(R.layout.bus_annotation_layout, null)
+                    val textView = customAnnotationView.findViewById<TextView>(R.id.busNumberText)
+                    textView.text = routeId
+
+                    customAnnotationView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+                    customAnnotationView.layout(0, 0, customAnnotationView.measuredWidth, customAnnotationView.measuredHeight)
+                    val bitmap = Bitmap.createBitmap(customAnnotationView.measuredWidth, customAnnotationView.measuredHeight, Bitmap.Config.ARGB_8888)
+                    val canvas = Canvas(bitmap)
+                    customAnnotationView.draw(canvas)
+
+                    val pointAnnotation = PointAnnotationOptions()
+                        .withPoint(Point.fromLngLat(vehicleLongitude.toDouble(), vehicleLatitude.toDouble()))
+                        .withIconImage(bitmap)
+
+                    annotations.add(pointAnnotation)
+                }
+            }
+
+            // Update the map with annotations on the main thread
+            activity?.runOnUiThread {
+                pointAnnotationManager?.create(annotations)
+            }
+        }.start()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
+        pointAnnotationManager = null // Avoid memory leaks
         _binding = null
     }
 }

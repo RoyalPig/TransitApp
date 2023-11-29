@@ -19,7 +19,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         //Allow network operations on the main thread
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy((policy))
+        StrictMode.setThreadPolicy(policy)
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        val navView: BottomNavigationView = binding.navView
+        val navController = findNavController(R.id.nav_host_fragment_activity_main)
+
+        val appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.navigation_map, R.id.navigation_routes, R.id.navigation_alerts
+            )
+        )
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        navView.setupWithNavController(navController)
+
         // Retrieve location data from the intent
         val latitude = intent.getDoubleExtra("latitude", 0.0)
         val longitude = intent.getDoubleExtra("longitude", 0.0)
@@ -27,22 +42,13 @@ class MainActivity : AppCompatActivity() {
         // Log the received location data
         Log.i("ReceivedLocation", "Latitude: $latitude, Longitude: $longitude")
 
+        // Create a bundle with the received location data
+        val bundle = Bundle().apply {
+            putDouble("latitude", latitude)
+            putDouble("longitude", longitude)
+        }
 
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        val navView: BottomNavigationView = binding.navView
-
-        val navController = findNavController(R.id.nav_host_fragment_activity_main)
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications
-            )
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
-        navView.setupWithNavController(navController)
+        // Navigate to MapFragment with the location data
+        navController.navigate(R.id.navigation_map, bundle)
     }
 }
