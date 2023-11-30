@@ -2,6 +2,7 @@ package com.example.transitapp.ui.Routes
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -64,12 +65,29 @@ class RoutesFragment : Fragment() {
 
     private fun addPreferredRoute(route: String) {
         preferredRoutes.add(route)
-        // Save the preferred routes using SharedPreferences or another method
+        // Save the preferred routes
+
         savePreferredRoutes()
     }
 
     private fun savePreferredRoutes() {
         // TODO: Implement the method to save preferred routes in SharedPreferences or a database
+        val filename = "myfile"
+        val fileContents = "Hello world!"
+        context?.openFileOutput(filename, Context.MODE_PRIVATE).use {
+            if (it != null) {
+                it.write(fileContents.toByteArray())
+                Log.i("NOT AS BAD","Saved the file")
+            }else{
+                Log.i("ERROR HERE LOOK HERE MATT LOOK HERE MAN", "Cannot find file")
+            }
+        }
+        context?.openFileInput(filename)?.bufferedReader()?.useLines { lines ->
+            lines.fold("") { some, text ->
+                "$some\n$text"
+            }
+            Log.i("FileInput reached data recived2", lines.toString())
+        }
     }
 
     override fun onDestroyView() {

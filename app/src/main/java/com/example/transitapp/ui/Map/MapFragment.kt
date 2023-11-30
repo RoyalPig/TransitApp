@@ -91,6 +91,8 @@ class MapFragment : Fragment() {
                 }
             }
 
+
+
             // Update the map with annotations on the main thread
             activity?.runOnUiThread {
                 pointAnnotationManager?.create(annotations)
