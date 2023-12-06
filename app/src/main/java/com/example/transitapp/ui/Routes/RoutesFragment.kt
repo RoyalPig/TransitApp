@@ -13,6 +13,7 @@ import com.example.transitapp.R
 import com.example.transitapp.databinding.FragmentRoutesBinding
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.io.IOException
 
 class RoutesFragment : Fragment() {
 
@@ -31,6 +32,7 @@ class RoutesFragment : Fragment() {
 
         autoCompleteTextView = binding.autoCompleteRoutes
         loadBusRoutes(requireContext())
+        loadPreferredRoutes()
 
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, busRoutes)
         autoCompleteTextView.setAdapter(adapter)
@@ -39,13 +41,11 @@ class RoutesFragment : Fragment() {
             val route = autoCompleteTextView.text.toString()
             if (route.isNotEmpty() && busRoutes.contains(route)) {
                 addPreferredRoute(route)
-                // Update your UI to reflect the new list of preferred routes
+                updatePreferredRoutesDisplay() // Update the UI here
             } else {
-                // Handle the case where the route is not in the list or empty
+                // Handle invalid input
             }
         }
-
-        // TODO: Implement functionality to display preferred routes and update UI
 
         return binding.root
     }
@@ -65,29 +65,52 @@ class RoutesFragment : Fragment() {
 
     private fun addPreferredRoute(route: String) {
         preferredRoutes.add(route)
-        // Save the preferred routes
-
         savePreferredRoutes()
     }
 
     private fun savePreferredRoutes() {
-        // TODO: Implement the method to save preferred routes in SharedPreferences or a database
-        val filename = "myfile"
-        val fileContents = "Hello world!"
-        context?.openFileOutput(filename, Context.MODE_PRIVATE).use {
-            if (it != null) {
-                it.write(fileContents.toByteArray())
-                Log.i("NOT AS BAD","Saved the file")
-            }else{
-                Log.i("ERROR HERE LOOK HERE MATT LOOK HERE MAN", "Cannot find file")
+        val filename = "preferred_routes.txt"
+        try {
+            context?.openFileOutput(filename, Context.MODE_PRIVATE).use { output ->
+                output?.write(preferredRoutes.joinToString(",").toByteArray())
+                Log.d("RoutesFragment", "Saved preferred routes: ${preferredRoutes.joinToString(",")}")
             }
+        } catch (e: IOException) {
+            Log.e("RoutesFragment", "Error saving preferred routes", e)
         }
-        context?.openFileInput(filename)?.bufferedReader()?.useLines { lines ->
-            lines.fold("") { some, text ->
-                "$some\n$text"
+    }
+
+
+    private fun loadPreferredRoutes() {
+        val filename = "preferred_routes.txt"
+
+        try {
+            context?.openFileInput(filename)?.bufferedReader().use { reader ->
+                reader?.let {
+                    val storedRoutes = it.readLine()
+                    if (!storedRoutes.isNullOrEmpty()) {
+                        preferredRoutes.addAll(storedRoutes.split(","))
+                        Log.d("RoutesFragment", "Loaded preferred routes: $storedRoutes")
+                    }
+                }
             }
-            Log.i("FileInput reached data recived2", lines.toString())
+        } catch (e: IOException) {
+            Log.e("RoutesFragment", "Error loading preferred routes", e)
         }
+
+        updatePreferredRoutesDisplay() // Ensure UI is updated after loading routes
+    }
+
+    private fun updatePreferredRoutesDisplay() {
+        // Convert the set of preferred routes to a formatted string
+        val preferredRoutesDisplay = preferredRoutes.joinToString(separator = "\n") { route ->
+            "• $route"
+        }
+
+        // Update the TextView with the formatted string
+        binding.preferredRoutesTextView.text = preferredRoutesDisplay
+
+        // If you have more complex UI updates to make, add them here
     }
 
     override fun onDestroyView() {

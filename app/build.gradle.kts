@@ -51,6 +51,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.mapbox.maps:android:10.16.2")
     implementation("org.mobilitydata:gtfs-realtime-bindings:0.0.8")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
