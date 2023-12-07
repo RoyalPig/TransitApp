@@ -108,7 +108,7 @@ class MapFragment : Fragment() {
 
                     val isPreferredRoute = preferredRoutes.contains(routeId)
                     val annotationIcon = if (isPreferredRoute) {
-                        createCustomAnnotationIcon(Color.BLUE) // Updated this line
+                        createCustomAnnotationIcon(Color.BLUE, routeId) // Updated this line
                     } else {
                         bitmap
                     }
@@ -150,29 +150,39 @@ class MapFragment : Fragment() {
         return preferredRoutes
     }
 
-    private fun createCustomAnnotationIcon(color: Int): Bitmap {
-        // Example dimensions, you might need to adjust the size
-        val width = 50
-        val height = 50
+    private fun createCustomAnnotationIcon(color: Int, text: String): Bitmap {
+        val width = 80
+        val height = 80
 
-        // Create a new bitmap
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
 
-        // Draw the custom annotation, for example, a circle with the specified color
-        val paint = Paint().apply {
-            this.color = color // Set the color to the specified color
-            style = Paint.Style.FILL // Fill the circle
+        // First draw the circle
+        val circlePaint = Paint().apply {
+            this.color = color
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+        canvas.drawCircle(width / 2f, height / 2f, width / 2f, circlePaint)
+
+        // Now draw the text on top of the circle
+        val textPaint = Paint().apply {
+            this.color = Color.WHITE // Set text color to white for contrast
+            textSize = 20f // Set the text size
+            textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
 
-        // Draw the circle onto the canvas
-        canvas.drawCircle(width / 2f, height / 2f, width / 2f, paint)
+        // Calculate the vertical center of the text to be drawn
+        val textHeight = textPaint.descent() - textPaint.ascent()
+        val textOffset = (textHeight / 2) - textPaint.descent()
 
-        // Optionally, you can add text or other styling to the icon here
+        // Draw the text onto the canvas
+        canvas.drawText(text, width / 2f, (height / 2f) + textOffset, textPaint)
 
         return bitmap
     }
+
 
     override fun onResume() {
         super.onResume()

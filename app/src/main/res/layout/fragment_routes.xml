@@ -28,12 +28,21 @@
         app:layout_constraintStart_toEndOf="@id/autoCompleteRoutes"
         app:layout_constraintBottom_toBottomOf="@id/autoCompleteRoutes"/>
 
-    <TextView
-        android:id="@+id/preferredRoutesTextView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/addButton"
-        android:textAppearance="?attr/textAppearanceListItem"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/linearLayoutPreferredRoutes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+        </LinearLayout>
+    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

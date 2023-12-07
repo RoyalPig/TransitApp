@@ -1,5 +1,6 @@
 package com.example.transitapp.ui.Routes
 
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.example.transitapp.R
 import com.example.transitapp.databinding.FragmentRoutesBinding
@@ -49,6 +51,30 @@ class RoutesFragment : Fragment() {
 
         return binding.root
     }
+
+    private fun showDeleteConfirmationDialog(route: String) {
+        val dialogBuilder = AlertDialog.Builder(requireContext())
+        dialogBuilder.setMessage("Do you want to remove the route $route?")
+            .setCancelable(false)
+            .setPositiveButton("Remove") { dialog, id ->
+                deletePreferredRoute(route)
+                updatePreferredRoutesDisplay()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel") { dialog, id ->
+                dialog.dismiss()
+            }
+
+        val alert = dialogBuilder.create()
+        alert.setTitle("Remove Route")
+        alert.show()
+    }
+
+    private fun deletePreferredRoute(route: String) {
+        preferredRoutes.remove(route)
+        savePreferredRoutes()
+    }
+
 
     private fun loadBusRoutes(context: Context) {
         val inputStream = context.resources.openRawResource(R.raw.routes)
@@ -102,15 +128,18 @@ class RoutesFragment : Fragment() {
     }
 
     private fun updatePreferredRoutesDisplay() {
-        // Convert the set of preferred routes to a formatted string
-        val preferredRoutesDisplay = preferredRoutes.joinToString(separator = "\n") { route ->
-            "• $route"
+        binding.linearLayoutPreferredRoutes.removeAllViews()
+        for (route in preferredRoutes) {
+            val textView = TextView(context).apply {
+                text = route
+                textSize = 30f
+                setPadding(20, 20, 20, 20)
+            }
+            textView.setOnClickListener {
+                showDeleteConfirmationDialog(route)
+            }
+            binding.linearLayoutPreferredRoutes.addView(textView)
         }
-
-        // Update the TextView with the formatted string
-        binding.preferredRoutesTextView.text = preferredRoutesDisplay
-
-        // If you have more complex UI updates to make, add them here
     }
 
     override fun onDestroyView() {
