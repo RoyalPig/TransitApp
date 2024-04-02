@@ -151,8 +151,8 @@ class MapFragment : Fragment() {
     }
 
     private fun createCustomAnnotationIcon(color: Int, text: String): Bitmap {
-        val width = 80
-        val height = 80
+        val width = 200
+        val height = 200
 
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
